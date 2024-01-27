@@ -17,6 +17,7 @@ app.use(express.static("public"))
 
 //Routes import
 import userRouter from "./routes/user.route.js";
+import ApiError from "./utils/ApiError.js";
 
 
 //Routes Declaration
@@ -26,6 +27,7 @@ app.use((err, req, res, next) => {
     // Check if it's an instance of your custom ApiError
     if (err instanceof ApiError) {
       return res.status(err.statusCode).json({
+        statusCode : err.statusCode,
         error: err.message,
         // You can include additional information if needed
         // errors: err.errors,
