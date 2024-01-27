@@ -22,4 +22,15 @@ import userRouter from "./routes/user.route.js";
 //Routes Declaration
 app.use("/api/v1/users", userRouter);
 
+app.use((err, req, res, next) => {
+    // Check if it's an instance of your custom ApiError
+    if (err instanceof ApiError) {
+      return res.status(err.statusCode).json({
+        error: err.message,
+        // You can include additional information if needed
+        // errors: err.errors,
+      });
+    }
+})
+
 export default app
