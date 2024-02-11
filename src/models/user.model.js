@@ -27,9 +27,24 @@ const userSchema = new Schema({
 
     refreshToken:{
         type : String
-    }
-}, {timestamps:true})
+    },
 
+    pofilePicture : {
+        type : String
+    },
+
+    wellpoints : {
+        type : Number
+    },
+
+    task_completed : [
+        {
+            type : Schema.Types.ObjectId,
+            ref : "Task"
+        }
+    ]
+}, {timestamps:true})
+ 
 userSchema.pre("save", async function (next){
     if (!this.isModified("password")) return next();
 

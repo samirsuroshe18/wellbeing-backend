@@ -17,20 +17,27 @@ app.use(express.static("public"))
 
 //Routes import
 import userRouter from "./routes/user.route.js";
-import ApiError from "./utils/ApiError.js";
+import tasklistRouter from "./routes/tasklist.route.js";
+import uploadRouter from "./routes/upload.route.js";
+import commentRouter from "./routes/comment.route.js";
+import likeRouter from "./routes/like.route.js";
+import dislikeRouter from "./routes/unlike.route.js";
 
 
 //Routes Declaration
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/tasklist", tasklistRouter);
+app.use("/api/v1/upload", uploadRouter);
+app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/like", likeRouter);
+app.use("/api/v1/dislike", dislikeRouter);
+
 
 app.use((err, req, res, next) => {
-    // Check if it's an instance of your custom ApiError
     
       return res.status(err.statusCode).json({
         statusCode : err.statusCode,
         error: err.message,
-        // You can include additional information if needed
-        // errors: err.errors,
       });
     
 })
