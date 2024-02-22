@@ -1,6 +1,6 @@
 import mongoose, {Schema} from "mongoose";
 
-const taskSchema =  new Schema({
+const userTaskInfoSchema =  new Schema({
     taskInfo : {
         type : Schema.Types.ObjectId,
         ref : "TaskCollection"
@@ -17,10 +17,10 @@ const taskSchema =  new Schema({
     },
 
     proofMedia : {
-        type : String,
-        required : true
+        type : Schema.Types.ObjectId,
+        ref : "Upload"
     }
 })
 
 
-export const Task = mongoose.model('Task', taskSchema);
+export const UserTaskInfo = mongoose.model('UserTaskInfo', userTaskInfoSchema);

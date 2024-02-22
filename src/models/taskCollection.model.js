@@ -26,7 +26,7 @@ const taskCollectionSchema =  new Schema({
         type : Number,
         required : true
     }
-})
+}, {timestamps : true})
 
 
 export const TaskCollection = mongoose.model('TaskCollection', taskCollectionSchema);
