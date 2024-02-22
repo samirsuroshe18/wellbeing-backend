@@ -22,6 +22,7 @@ import uploadRouter from "./routes/upload.route.js";
 import commentRouter from "./routes/comment.route.js";
 import likeRouter from "./routes/like.route.js";
 import dislikeRouter from "./routes/unlike.route.js";
+import userTaskInfoRouter from "./routes/userTaskInfo.route.js";
 
 
 //Routes Declaration
@@ -31,6 +32,7 @@ app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/like", likeRouter);
 app.use("/api/v1/dislike", dislikeRouter);
+app.use("/api/v1/usertaskinfo", userTaskInfoRouter);
 
 
 app.use((err, req, res, next) => {
