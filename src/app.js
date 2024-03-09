@@ -1,13 +1,11 @@
 import express from "express";
-import cors from 'cors'
+import cors from 'cors';
 
 const app = express();
 
-// database name --> youtubedb
-
-// this use for cross origin sharing 
+// this middleware is used for cross origin sharing 
 app.use(cors({ origin: process.env.CORS_ORIGIN}))
-// this middleware use for parsing the json data
+// this middleware is used for parsing the json data by default express does not parse the jason data
 app.use(express.json({limit:"16kb"}))
 // this is used for parsing url data extended is used for nessted object
 app.use(express.urlencoded({extended: true}))

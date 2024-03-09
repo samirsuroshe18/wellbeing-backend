@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -24,6 +25,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res)=>{
     const {userName, email, password} = req.body;
+    const pofilePicture = await uploadOnCloudinary(req.file.path);
 
     if (!userName?.trim() || !email?.trim() || !password?.trim()) {
         throw new ApiError(400, "All fields are required");
@@ -41,7 +43,8 @@ const registerUser = asyncHandler(async (req, res)=>{
     const user = await User.create({
         email,
         password,
-        userName
+        userName,
+        pofilePicture : pofilePicture.url
     });
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);

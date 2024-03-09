@@ -11,7 +11,7 @@ const dislikeSchema = new Schema({
         type : Schema.Types.ObjectId,
         ref : "Upload"
     }
-})
+}, {timestamps : true})
 
 
 export const Dislike = mongoose.model("Dislike", dislikeSchema);  
