@@ -8,7 +8,7 @@ const taskCollectionSchema =  new Schema({
         unique : true,
     },
 
-    discription : {
+    description : {
         type : String,
         required : true,
     },

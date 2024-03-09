@@ -11,7 +11,7 @@ const uploadSchema = new Schema({
         ref : "User"
     },
 
-    discription : {
+    description : {
         type : String,
         required : true
     },
@@ -36,6 +36,16 @@ const uploadSchema = new Schema({
     task : {
         type : Schema.Types.ObjectId,
         ref : "TaskCollection"
+    },
+
+    mediaType : {
+        type : String,
+        required : true
+    },
+
+    duration : {
+        type : String,
+        default : "0"
     }
 }, {timestamps : true})
 

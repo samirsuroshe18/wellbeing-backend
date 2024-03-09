@@ -5,16 +5,37 @@ import { Dislike } from "../models/dislikes.model.js";
 
 
 const sendDislike = asyncHandler(async (req, res) =>{
-    const dislikedBy = new mongoose.Types.ObjectId(req.body.dislikedBy);
-    const multiMedia = new mongoose.Types.ObjectId(req.body.multiMedia);
+    const {multiMedia} = req.body;
 
-    const like = await Dislike.create({
+    if(!multiMedia){
+        throw new ApiError(500, "MultiMedia id is not found")
+    }
+    const dislikedBy = new mongoose.Types.ObjectId(req.user._id);
+    const multiMediaId = new mongoose.Types.ObjectId(multiMedia);
+
+    const dislike = await Dislike.create({
         dislikedBy,
-        multiMedia
-    })
+        multiMedia : multiMediaId
+    });
 
-    res.send(200).json(
-        new ApiResponse(200, {}, "Disliked")
+    if(!dislike){
+        throw new ApiError(500, "Something went wrong!!");
+    }
+
+    const totalDislikes = await Dislike.countDocuments({ multiMedia });
+
+    if(!totalDislikes){
+        throw new ApiError(500, "Something went wrong!!");
+    }
+
+    if(totalDislikes>=10){
+        return res.status(200).json(
+            new ApiResponse(200, {totalDislikes}, "Limit reached")
+        )
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, {totalDislikes}, "Disliked")
     )
 })
 

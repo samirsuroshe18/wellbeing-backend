@@ -3,9 +3,9 @@ import { createTask } from "../controllers/taskCollection.controller.js";
 import verifyJwt from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
-
 const router = Router();
 
+//Secure Routes
 router.route('/create-task').post(verifyJwt, upload.single("taskReference"), createTask);
 
 
