@@ -97,9 +97,69 @@ const getTask = asyncHandler(async (req, res) => {
   )
 })
 
-const getTaskCurrentState = asyncHandler(async (req, res)=>{
+const getTaskCurrentState = asyncHandler(async (req, res) => {
+  const currentTask = await UserTaskInfo.findById(req.body._id);
+  const timeDifference = new Date().getTime()-Date.parse(currentTask.createdAt);
   
-})
+  const task = await TaskCollection.findById(currentTask.taskInfo);
+  const timeToComplete = task.timeToComplete;
+  const dayTimeLimit = new Date(new Date().getTime() - timeToComplete * 24 * 60 * 60 * 1000);
+
+  const millis = (timeToComplete * 24 * 60 * 60 * 1000)-timeDifference;
+
+  let seconds = Math.floor(millis / 1000);
+
+  // Calculate hours, minutes, and remaining seconds
+  let days = Math.floor(seconds / (3600 * 24));
+  seconds %= 3600 * 24;
+  let hours = Math.floor(seconds / 3600);
+  seconds %= 3600;
+  let minutes = Math.floor(seconds / 60);
+  seconds %= 60;
+  const remainingTime = days.toString()+" Days : "+ hours.toString()+" Hours : "+minutes.toString()+" Minutes : "+seconds.toString()+" Seconds.";
+
+  const status = await UserTaskInfo.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.body._id)
+      }
+    },
+    {
+      $addFields: {
+        status: {
+          $cond: {
+            if: {
+              $lt: ["$createdAt", dayTimeLimit]
+            },
+            then: "incompleted",
+            else: "pending"
+          }
+        }
+      },
+      $addFields : {
+        remainingTime : remainingTime
+      }
+    },
+    {
+      $project: {
+        status: 1,
+        remainingTime : 1
+      }
+    }
+  ]);
+
+  const response = status[0];
+
+  if(status[0].status == "incompleted"){
+    const taskInfo = await UserTaskInfo.findById(req.body._id);
+    taskInfo.status = "incompleted";
+    taskInfo.save();
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, response, "Current task status fetched successfully")
+  )
+});
 
 
-export { acceptTask, getTask }
+export { acceptTask, getTask, getTaskCurrentState }
