@@ -5,12 +5,12 @@ const taskCollectionSchema =  new Schema({
         type : String,
         required : true,
         trim : true,
-        unique : true,
+        unique : [true, 'Task title should be unique'],
     },
 
     description : {
         type : String,
-        required : true,
+        required : [true, 'Please provide description about task'],
     },
 
     taskReference : {
@@ -28,7 +28,7 @@ const taskCollectionSchema =  new Schema({
 
     timeToComplete : {
         type : Number,
-        required : true
+        required : [true, 'Please provide time']
     }
 }, {timestamps : true})
 

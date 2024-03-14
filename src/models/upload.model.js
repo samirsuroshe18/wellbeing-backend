@@ -3,7 +3,7 @@ import mongoose, {Schema} from "mongoose";
 const uploadSchema = new Schema({
     multiMedia : {   //it could be either image or video
         type : String,
-        required : true
+        required : [true, 'Please upload some multi media']
     },
 
     uploadedBy : {
@@ -13,7 +13,7 @@ const uploadSchema = new Schema({
 
     description : {
         type : String,
-        required : true
+        required : [true, 'Please provide some description']
     },
 
     likes : {
@@ -40,7 +40,7 @@ const uploadSchema = new Schema({
 
     mediaType : {
         type : String,
-        required : true
+        required : [true, 'Please provide media type']
     },
 
     duration : {

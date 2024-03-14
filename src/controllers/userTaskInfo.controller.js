@@ -48,6 +48,7 @@ const acceptTask = asyncHandler(async (req, res) => {
 
 
 const getTask = asyncHandler(async (req, res) => {
+  
   const userId = new mongoose.Types.ObjectId(req.user._id);
 
   const assignedTaskIds = await UserTaskInfo.find({ assignTo: userId })
@@ -88,7 +89,7 @@ const getTask = asyncHandler(async (req, res) => {
             $project: {
               _id: 1,
               userName: 1,
-              pofilePicture: 1
+              profilePicture: 1
             }
           }
         ]
@@ -113,7 +114,6 @@ const getTask = asyncHandler(async (req, res) => {
       }
     }
   ])
-  console.log(randomTask)
   res.status(200).json(
     new ApiResponse(200, randomTask, "Random task fetched successfully")
   )
