@@ -40,7 +40,7 @@ const postComment = asyncHandler(async (req, res) => {
                         $project: {
                             _id: 1,
                             userName: 1,
-                            pofilePicture: 1
+                            profilePicture: 1
                         }
                     }
                 ]
