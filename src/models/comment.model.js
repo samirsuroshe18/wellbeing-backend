@@ -3,7 +3,7 @@ import mongoose, {Schema} from "mongoose";
 const commentSchema = new Schema({
     content: {
         type: String,
-        required: true
+        required: [true, 'Please provide some content']
     },
 
     commentedBy : {
