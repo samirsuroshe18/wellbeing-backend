@@ -25,7 +25,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const registerUser = asyncHandler(async (req, res)=>{
     const {userName, email, password} = req.body;
-    const pofilePicture = await uploadOnCloudinary(req.file.path);
 
     if (!userName?.trim() || !email?.trim() || !password?.trim()) {
         throw new ApiError(400, "All fields are required");
@@ -39,12 +38,23 @@ const registerUser = asyncHandler(async (req, res)=>{
         throw new ApiError(409, 'User with same email or username already exists');
     }
 
+    const userProfileLocalPath = req.file.path;
+
+    if(!userProfileLocalPath){
+        throw new ApiError(400, "File path is not found !!");
+    } 
+
+    const profilePicture = await uploadOnCloudinary(userProfileLocalPath);
+
+    if(!profilePicture){
+        throw new ApiError(400, "There is some error uploading a file on cloudinary");
+      }
 
     const user = await User.create({
         email,
         password,
         userName,
-        pofilePicture : pofilePicture.url
+        profilePicture : profilePicture?.url
     });
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
@@ -58,11 +68,11 @@ const registerUser = asyncHandler(async (req, res)=>{
     return res.status(200).json(
         new ApiResponse(200, {createdUser, accessToken, refreshToken}, "User registered successfully")
     );
-
 });
 
 
 const loginUser = asyncHandler(async (req, res) =>{
+    console.log("hello")
     const {userName, email, password} = req.body;
 
     if (!userName && !email) {

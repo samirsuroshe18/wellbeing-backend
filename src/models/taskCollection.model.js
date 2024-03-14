@@ -16,6 +16,10 @@ const taskCollectionSchema =  new Schema({
     taskReference : {
         type : String
     },
+
+    mediaType : {
+        type : String
+    },
   
     createdBy : {
         type : Schema.Types.ObjectId,

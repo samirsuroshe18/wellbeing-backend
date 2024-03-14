@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
 
 const createTask = asyncHandler(async (req, res) => {
-    const {title, description, timeToComplete} = req.body;
+    const {title, description, timeToComplete, mediaType} = req.body;
 
     if(!title?.trim() || !description?.trim() || !timeToComplete?.trim()){
         throw new ApiError(400, "All fields are required !!");
@@ -28,6 +28,7 @@ const createTask = asyncHandler(async (req, res) => {
     const taskInfo = await TaskCollection.create({
         title,
         description,
+        mediaType,
         timeToComplete,
         createdBy,
         taskReference : taskReference?.url

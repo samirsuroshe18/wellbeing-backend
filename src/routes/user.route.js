@@ -5,8 +5,8 @@ import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
-router.route('/register').post(upload.single("pofilePicture"), registerUser);
-router.route('/login').post(upload.single("pofilePicture"), loginUser);
+router.route('/register').post(upload.single("profilePicture"), registerUser);
+router.route('/login').post(loginUser);
 
 //Secure routes
 router.route('/logout').get(verifyJwt, logoutUser);
