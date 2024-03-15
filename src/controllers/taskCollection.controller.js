@@ -4,6 +4,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
+import fs from "fs";
 
 const createTask = asyncHandler(async (req, res) => {
     const {title, description, timeToComplete, mediaType} = req.body;
@@ -14,12 +15,14 @@ const createTask = asyncHandler(async (req, res) => {
 
     const createdBy = new mongoose.Types.ObjectId(req.user._id);
     const taskReferenceLocalPath = req.file.path;
+    let taskReference;
 
-    if(!taskReferenceLocalPath){
+    if (fs.existsSync(taskReferenceLocalPath)) {
+        taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
+    }else{
         throw new ApiError(400, "File path is not found !!");
     }
 
-    const taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
 
     if(!taskReference){
         throw new ApiError(500, "Something went wrong");
@@ -33,8 +36,6 @@ const createTask = asyncHandler(async (req, res) => {
         createdBy,
         taskReference : taskReference?.url
     });
-
-    const response = new ApiResponse(200, {}, "Task is created successfully");
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Task is created successfully")
