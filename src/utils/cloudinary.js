@@ -35,14 +35,17 @@ cloud.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
     try {
-        if (!localFilePath) return null;
+
+        if (!fs.existsSync(localFilePath)) {
+            console.log(`File does not exist at path: ${localFilePath}`);
+            return null;
+        }
+
         const response = await cloud.uploader.upload(localFilePath, { resource_type: "auto" });
         console.log("file is uploaded on cloudinary sdk : ", response.url);
 
-        if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath)//remove the locally saved temporary files as the upload operation got successfull
-        }
-
+        fs.unlinkSync(localFilePath)//remove the locally saved temporary files as the upload operation got successfull
+        
         return response;
     }
     catch (err) {
