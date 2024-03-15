@@ -36,8 +36,7 @@ app.use("/api/v1/usertaskinfo", userTaskInfoRouter);
 app.use((err, req, res, next) => {
     
       return res.status(err.statusCode).json({
-        statusCode : err.statusCode,
-        error: err.message,
+        message : err.message,
       });
     
 })
