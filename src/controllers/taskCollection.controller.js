@@ -34,9 +34,9 @@ const createTask = asyncHandler(async (req, res) => {
         taskReference : taskReference?.url
     });
 
-    return res.status(200).json(
-        new ApiResponse(200, {}, "Task is created successfully")
-    );
+    const response = new ApiResponse(200, {}, "Task is created successfully");
+
+    return res.status(response.statusCode).json(response);
 });
 
 
