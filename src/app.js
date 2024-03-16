@@ -12,7 +12,7 @@ app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({extended: true}))
 // this is used for accessing public resources from server
 // app.use(express.static("public"))
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname("public");
 app.use(express.static(__dirname));
 
 
