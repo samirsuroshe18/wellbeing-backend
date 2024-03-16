@@ -11,7 +11,10 @@ app.use(express.json({limit:"16kb"}))
 // this is used for parsing url data extended is used for nessted object
 app.use(express.urlencoded({extended: true}))
 // this is used for accessing public resources from server
-app.use(express.static("public"));
+// app.use(express.static("public"));
+
+app.use(express.static(__dirname + '/public/temp'));
+app.use('/public/tmp', express.static('public', 'tmp'));
 
 
 //Routes import
