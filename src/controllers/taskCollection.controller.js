@@ -22,7 +22,13 @@ const createTask = asyncHandler(async (req, res) => {
 
     console.log("taskReferenceLocalPath : ",taskReferenceLocalPath);
 
-    const taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
+    let taskReference;
+
+    if (fs.existsSync(taskReferenceLocalPath)) {
+        taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
+    }else{
+        throw new ApiError(400, "File path is not found !!");
+    }
 
 
     if(!taskReference){
