@@ -4,7 +4,7 @@ import path from 'path'
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(process.cwd(), '../../public/temp'));
+      cb(null, path.join(__dirname, '/public/temp'));
     },
     filename: function (req, file, cb) {
       cb(null, file.originalname)
@@ -12,4 +12,3 @@ const storage = multer.diskStorage({
   })
   
   export const upload = multer({ storage });
-  // export const upload = multer({ storage : storage });
