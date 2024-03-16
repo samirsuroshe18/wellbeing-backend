@@ -13,7 +13,7 @@ app.use(express.urlencoded({extended: true}))
 // this is used for accessing public resources from server
 // app.use(express.static("public"));
 
-app.use(express.static(__dirname + '/public/temp'));
+app.use(express.static(path.join(new URL('.', import.meta.url).pathname, 'public/temp')));
 app.use('/public/tmp', express.static('public', 'tmp'));
 
 
