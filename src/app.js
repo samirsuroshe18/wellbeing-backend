@@ -1,5 +1,6 @@
 import express from "express";
 import cors from 'cors';
+import path from 'path';
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json({limit:"16kb"}))
 app.use(express.urlencoded({extended: true}))
 // this is used for accessing public resources from server
 // app.use(express.static("public"))
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 app.use(express.static(__dirname));
 
 
