@@ -15,13 +15,14 @@ const createTask = asyncHandler(async (req, res) => {
 
     const createdBy = new mongoose.Types.ObjectId(req.user._id);
     const taskReferenceLocalPath = req.file.path;
-    let taskReference;
-
-    if (fs.existsSync(taskReferenceLocalPath)) {
-        taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
-    }else{
+    
+    if(!taskReferenceLocalPath){
         throw new ApiError(400, "File path is not found !!");
     }
+
+    console.log("taskReferenceLocalPath : ",taskReferenceLocalPath);
+
+    const taskReference = await uploadOnCloudinary(taskReferenceLocalPath);
 
 
     if(!taskReference){
