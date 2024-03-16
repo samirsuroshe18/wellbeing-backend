@@ -14,7 +14,7 @@ app.use(express.urlencoded({extended: true}))
 // app.use(express.static("public"));
 
 app.use(express.static(path.join(new URL('.', import.meta.url).pathname, 'public/temp')));
-app.use('/public/tmp', express.static('public', 'tmp'));
+app.use('/public/temp', express.static('public/temp'));
 
 
 //Routes import
