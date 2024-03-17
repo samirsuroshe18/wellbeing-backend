@@ -34,15 +34,24 @@ const userSchema = new Schema({
     },
 
     wellpoints: {
-        type: Number
+        type : Schema.Types.ObjectId,
+        ref : "Upload"
     },
 
-    task_completed: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: "Task"
-        }
-    ]
+    task_completed: {
+        type: Schema.Types.ObjectId,
+        ref: "Task"
+    },
+
+    rank : {
+        type : Number
+    },
+
+    successRate : {
+        type : Schema.Types.ObjectId,
+        ref : "Task"
+    }
+    
 }, { timestamps: true })
 
 userSchema.pre("save", async function (next) {

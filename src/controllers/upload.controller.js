@@ -213,8 +213,7 @@ const getWellPoints = asyncHandler(async (req, res) => {
         wellpoints: { $sum: "$wellpoints" }
       }
     }
-  ]
-  );
+  ]);
 
   res.status(200).json(
     new ApiResponse(200, points, "wellpoints calculated successfully")
