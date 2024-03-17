@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -23,38 +24,38 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 
-const registerUser = asyncHandler(async (req, res)=>{
-    const {userName, email, password} = req.body;
+const registerUser = asyncHandler(async (req, res) => {
+    const { userName, email, password } = req.body;
 
     if (!userName?.trim() || !email?.trim() || !password?.trim()) {
         throw new ApiError(400, "All fields are required");
     }
 
     const existedUser = await User.findOne({
-        $or : [{userName}, {email}]
+        $or: [{ userName }, { email }]
     });
-    
+
     if (existedUser) {
         throw new ApiError(409, 'User with same email or username already exists');
     }
 
     const userProfileLocalPath = req.file.path;
 
-    if(!userProfileLocalPath){
+    if (!userProfileLocalPath) {
         throw new ApiError(400, "File path is not found !!");
-    } 
+    }
 
     const profilePicture = await uploadOnCloudinary(userProfileLocalPath);
 
-    if(!profilePicture){
+    if (!profilePicture) {
         throw new ApiError(400, "There is some error uploading a file on cloudinary");
-      }
+    }
 
     const user = await User.create({
         email,
         password,
         userName,
-        profilePicture : profilePicture?.url
+        profilePicture: profilePicture?.url
     });
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
@@ -66,13 +67,13 @@ const registerUser = asyncHandler(async (req, res)=>{
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {createdUser, accessToken, refreshToken}, "User registered successfully")
+        new ApiResponse(200, { createdUser, accessToken, refreshToken }, "User registered successfully")
     );
 });
 
 
-const loginUser = asyncHandler(async (req, res) =>{
-    const {userName, email, password} = req.body;
+const loginUser = asyncHandler(async (req, res) => {
+    const { userName, email, password } = req.body;
 
     if (!userName && !email) {
         throw new ApiError(400, "username or email is required")
@@ -97,13 +98,13 @@ const loginUser = asyncHandler(async (req, res) =>{
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
     return res.status(200).json(
-        new ApiResponse(200, {loggedInUser, accessToken, refreshToken}, "User logged in sucessully")
+        new ApiResponse(200, { loggedInUser, accessToken, refreshToken }, "User logged in sucessully")
     )
 
 })
 
 
-const logoutUser = asyncHandler(async (req, res)=>{
+const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } }, { new: true });
 
     return res.status(200).json(
@@ -111,5 +112,305 @@ const logoutUser = asyncHandler(async (req, res)=>{
     )
 })
 
+const getLeaderboardList = asyncHandler(async (req, res) => {
 
-export {registerUser, loginUser, logoutUser}
+    const leaderboardList = await User.aggregate([
+        {
+            $lookup: {
+                from: "uploads",
+                localField: "_id",
+                foreignField: "uploadedBy",
+                as: "wellpoints",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "likes",
+                            localField: "_id",
+                            foreignField: "multiMedia",
+                            as: "likes",
+                        },
+                    },
+                    {
+                        $addFields: {
+                            totalLike: { $size: "$likes" },
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "dislikes",
+                            localField: "_id",
+                            foreignField: "multiMedia",
+                            as: "dislikes",
+                        },
+                    },
+                    {
+                        $addFields: {
+                            dislikeCount: { $size: "$dislikes" },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            wellpoints: {
+                                $round: [
+                                    {
+                                        $multiply: [
+                                            {
+                                                $divide: [
+                                                    {
+                                                        $subtract: [
+                                                            "$totalLike",
+                                                            {
+                                                                $divide: [
+                                                                    "$dislikeCount",
+                                                                    2,
+                                                                ],
+                                                            },
+                                                        ],
+                                                    },
+                                                    10,
+                                                ],
+                                            },
+                                            10,
+                                        ],
+                                    },
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            wellpoints: { $sum: "$wellpoints" },
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $addFields: {
+                wellpoints: {
+                    $first: "$wellpoints",
+                },
+            },
+        },
+        {
+            $sort: { wellpoints: -1 } // Sort documents based on wellpoints in descending order
+        },
+        {
+            $project: {
+                _id: 1,
+                userName: 1,
+                profilePicture: 1,
+                wellpoints: 1
+            }
+        }
+    ])
+
+    res.status(200).json(
+        new ApiResponse(200, leaderboardList, "User data fetched")
+    )
+})
+
+const getUserDetails = asyncHandler(async (req, res) => {
+
+    const userId = new mongoose.Types.ObjectId(req.user._id);
+
+    const user = await User.aggregate([
+        {
+            $lookup: {
+                from: "uploads",
+                localField: "_id",
+                foreignField: "uploadedBy",
+                as: "wellpoints",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "likes",
+                            localField: "_id",
+                            foreignField: "multiMedia",
+                            as: "likes",
+                        },
+                    },
+                    {
+                        $addFields: {
+                            totalLike: { $size: "$likes" },
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "dislikes",
+                            localField: "_id",
+                            foreignField: "multiMedia",
+                            as: "dislikes",
+                        },
+                    },
+                    {
+                        $addFields: {
+                            dislikeCount: { $size: "$dislikes" },
+                        },
+                    },
+                    {
+                        $addFields: {
+                            wellpoints: {
+                                $round: [
+                                    {
+                                        $multiply: [
+                                            {
+                                                $divide: [
+                                                    {
+                                                        $subtract: [
+                                                            "$totalLike",
+                                                            {
+                                                                $divide: [
+                                                                    "$dislikeCount",
+                                                                    2,
+                                                                ],
+                                                            },
+                                                        ],
+                                                    },
+                                                    10,
+                                                ],
+                                            },
+                                            10,
+                                        ],
+                                    },
+                                    0,
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: "$uploadedBy",
+                            wellpoints: { $sum: "$wellpoints" },
+                        },
+                    },
+                ],
+            },
+        },
+        {
+            $lookup: {
+                from: "usertaskinfos",
+                localField: "_id",
+                foreignField: "assignTo",
+                as: "task_completed",
+                pipeline: [
+                    {
+                        $match: {
+                            status: "completed",
+                        },
+                    },
+                ],
+            },
+        },
+
+        {
+            $addFields: {
+                task_completed: {
+                    $cond: {
+                        if: {
+                            $gt: [
+                                { $size: "$task_completed" },
+                                0,
+                            ],
+                        },
+                        then: {
+                            $size: "$task_completed",
+                        },
+                        else: 0,
+                    },
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: "usertaskinfos",
+                localField: "_id",
+                foreignField: "assignTo",
+                as: "successRate",
+            },
+        },
+        {
+            $addFields: {
+                totalTask: {
+                    $size: "$successRate",
+                },
+            },
+        },
+        {
+            $addFields: {
+                successRate: {
+                    $multiply: [{ $divide: ["$task_completed", "$totalTask"] }, 100]
+                },
+            },
+        },
+        {
+            $addFields: {
+                wellpoints: {
+                    $first: "$wellpoints",
+                },
+            },
+        },
+        {
+            $addFields: {
+                userWellpoints: "$wellpoints._id" // Extract the array of user ObjectIds from wellpoints
+            }
+        },
+        {
+            $sort: { wellpoints: -1 }, // Sort documents based on wellpoints in descending order
+        },
+        {
+            $group: {
+                _id: null,
+                documents: { $push: "$$ROOT" }
+            }
+        },
+        {
+            $addFields: {
+                documents: {
+                    $map: {
+                        input: { $range: [0, { $size: "$documents" }] },
+                        as: "rank",
+                        in: {
+                            $mergeObjects: [
+                                { $arrayElemAt: ["$documents", "$$rank"] },
+                                { rank: "$$rank" }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        { $unwind: "$documents" },
+        {
+            $replaceRoot: { newRoot: "$documents" }
+        },
+        {
+            $match: {
+                _id: userId
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                userName: 1,
+                email: 1,
+                profilePicture: 1,
+                task_completed: 1,
+                successRate: 1,
+                wellpoints: 1,
+                createdAt: 1,
+                documents: 1,
+                rank: 1
+            }
+        }
+    ])
+
+    return res.status(200).json(
+        new ApiResponse(200, user,"User info fetched successfully")
+    )
+})
+
+
+export { registerUser, loginUser, logoutUser, getLeaderboardList, getUserDetails }
