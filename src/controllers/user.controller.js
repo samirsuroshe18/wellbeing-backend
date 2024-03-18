@@ -358,7 +358,7 @@ const getUserDetails = asyncHandler(async (req, res) => {
             }
         },
         {
-            $sort: { wellpoints: -1 }, // Sort documents based on wellpoints in descending order
+            $sort: { wellpoints: 1 }, // Sort documents based on wellpoints in descending order
         },
         {
             $group: {
