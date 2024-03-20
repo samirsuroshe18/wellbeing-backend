@@ -190,8 +190,12 @@ const getLeaderboardList = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 wellpoints: {
-                    $first: "$wellpoints",
-                },
+                    $cond: {
+                        if: { $gt: [{ $size: "$wellpoints" }, 0] },
+                        then: {   $first: "$wellpoints"  },
+                        else: { _id: null, wellpoints: 0 }
+                    }
+                }
             },
         },
         {
@@ -351,8 +355,12 @@ const getUserDetails = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 wellpoints: {
-                    $first: "$wellpoints",
-                },
+                    $cond: {
+                        if: { $gt: [{ $size: "$wellpoints" }, 0] },
+                        then: {   $first: "$wellpoints"  },
+                        else: { _id: null, wellpoints: 0 }
+                    }
+                }
             },
         },
         {
