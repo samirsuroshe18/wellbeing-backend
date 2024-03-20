@@ -304,7 +304,6 @@ const getUserDetails = asyncHandler(async (req, res) => {
                 ],
             },
         },
-
         {
             $addFields: {
                 task_completed: {
@@ -341,7 +340,11 @@ const getUserDetails = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 successRate: {
-                    $multiply: [{ $divide: ["$task_completed", "$totalTask"] }, 100]
+                    $cond: {
+                        if: { $eq: ["$totalTask", 0] },
+                        then: 0, // or any default value you prefer
+                        else: { $multiply: [{ $divide: ["$task_completed", "$totalTask"] }, 100] }
+                    }
                 },
             },
         },
