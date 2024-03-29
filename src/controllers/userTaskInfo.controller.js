@@ -210,7 +210,7 @@ const getTaskCurrentState = asyncHandler(async (req, res) => {
                   $project: {
                     _id: 1,
                     userName: 1,
-                    pofilePicture: 1 // Typo: should be "profilePicture"
+                    profilePicture: 1 // Typo: should be "profilePicture"
                   }
                 }
               ]
