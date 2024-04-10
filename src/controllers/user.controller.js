@@ -365,11 +365,11 @@ const getUserDetails = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                userWellpoints: "$wellpoints._id" // Extract the array of user ObjectIds from wellpoints
+                userWellpoints: "$wellpoints.wellpoints" // Extract the array of user ObjectIds from wellpoints
             }
         },
         {
-            $sort: { wellpoints: 1 }, // Sort documents based on wellpoints in descending order
+            $sort: { userWellpoints: -1 }, // Sort documents based on wellpoints in descending order
         },
         {
             $group: {
