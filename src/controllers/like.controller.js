@@ -33,7 +33,7 @@ const sendLike = asyncHandler(async (req, res) =>{
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {totalLikes}, "liked")
+        new ApiResponse(200, {totalLikes}, "Already Liked")
     )
     } else {
         // If the like doesn't exist, add it (like)

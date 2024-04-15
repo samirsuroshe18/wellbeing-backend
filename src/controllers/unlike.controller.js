@@ -31,7 +31,7 @@ const sendDislike = asyncHandler(async (req, res) =>{
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {totalDislike}, "Disliked")
+        new ApiResponse(200, {totalDislike}, "Already Disliked")
     )
     } else {
         // If the like doesn't exist, add it (like)
@@ -60,31 +60,6 @@ const sendDislike = asyncHandler(async (req, res) =>{
         new ApiResponse(200, {totalDislike}, "Disliked")
     )
     }
-
-    const dislike = await Dislike.create({
-        dislikedBy,
-        multiMedia : multiMediaId
-    });
-
-    if(!dislike){
-        throw new ApiError(500, "Something went wrong!!");
-    }
-
-    const totalDislikes = await Dislike.countDocuments({ multiMedia });
-
-    if(!totalDislikes){
-        throw new ApiError(500, "Something went wrong!!");
-    }
-
-    if(totalDislikes>=10){
-        return res.status(200).json(
-            new ApiResponse(200, {totalDislikes}, "Limit reached")
-        )
-    }
-
-    res.status(200).json(
-        new ApiResponse(200, {totalDislikes}, "Disliked")
-    )
 })
 
 
