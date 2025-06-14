@@ -46,7 +46,7 @@ const uploadPost = asyncHandler(async (req, res) => {
 
 const getUploadedPost = asyncHandler(async (req, res) => {
  
-  const daysAgo = 2;
+  const daysAgo = 1000;
   const dateBeforeDaysAgo = new Date(new Date().getTime() - daysAgo * 24 * 60 * 60 * 1000);
 
   const posts = await Upload.aggregate([
