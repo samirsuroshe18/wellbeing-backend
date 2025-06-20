@@ -119,6 +119,59 @@ const getTask = asyncHandler(async (req, res) => {
   )
 })
 
+const viewAcceptedTask = asyncHandler(async (req, res) => {
+  const {id} = req.body;
+  const assignedTaskIds = mongoose.Types.ObjectId.createFromHexString(id);
+
+  const randomTask = await TaskCollection.aggregate([
+    // Match tasks that are not assigned to the user
+    {
+      $match: {
+        _id: assignedTaskIds
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "createdBy",
+        foreignField: "_id",
+        as: "createdBy",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              userName: 1,
+              profilePicture: 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $addFields: {
+        createdBy: {
+          $first: "$createdBy"
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        description: 1,
+        mediaType: 1,
+        taskReference: 1,
+        createdBy: 1,
+        timeToComplete: 1
+      }
+    }
+  ])
+
+  return res.status(200).json(
+    new ApiResponse(200, randomTask, "Task fetched successfully")
+  )
+})
+
 const getTaskCurrentState = asyncHandler(async (req, res) => {
   const currentTask = await UserTaskInfo.findById(req.body._id);
   const post = await Upload.findOne({"task" : currentTask.taskInfo});
@@ -262,7 +315,6 @@ const getTaskCurrentState = asyncHandler(async (req, res) => {
     currentTask.status = "completed";
     await currentTask.save(); // await for the save operation
   }
-console.log(response)
   return res.status(200).json(
     new ApiResponse(200, response, "Current task status fetched successfully")
   );
@@ -270,4 +322,4 @@ console.log(response)
 
 
 
-export { acceptTask, getTask, getTaskCurrentState }
+export { acceptTask, getTask, getTaskCurrentState, viewAcceptedTask };
