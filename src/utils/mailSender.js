@@ -2,6 +2,8 @@
 import { createTransport } from 'nodemailer';
 import bcryptjs from 'bcryptjs'
 import { User } from '../models/user.model.js';
+import dotenv from "dotenv";
+dotenv.config();
 
 async function mailSender(email, userId, emailType, password = "NA") {
   try {
@@ -17,7 +19,7 @@ async function mailSender(email, userId, emailType, password = "NA") {
           <h2 style="color: #333;">Email Verification Required</h2>
           <p>Please verify your email address to complete your account setup.</p>
           <div style="margin: 30px 0;">
-            <a href="${process.env.DOMAIN}/api/v1/verify/verify-email?token=${hashedToken}" 
+            <a href="${process.env.DOMAIN_NAME}/api/v1/verify/verify-email?token=${hashedToken}" 
                style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
               Verify Email Address
             </a>
@@ -33,7 +35,7 @@ async function mailSender(email, userId, emailType, password = "NA") {
           <h2 style="color: #333;">Password Reset Request</h2>
           <p>You have requested to reset your password. Click the button below to proceed.</p>
           <div style="margin: 30px 0;">
-            <a href="${process.env.DOMAIN}/api/v1/verify/reset-password?token=${hashedToken}" 
+            <a href="${process.env.DOMAIN_NAME}/api/v1/verify/reset-password?token=${hashedToken}" 
                style="background-color: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
               Reset Password
             </a>
@@ -49,7 +51,7 @@ async function mailSender(email, userId, emailType, password = "NA") {
           <h2 style="color: #333;">Link Your Google Account</h2>
           <p>Complete the linking process by clicking the button below.</p>
           <div style="margin: 30px 0;">
-            <a href="${process.env.DOMAIN}/api/v1/verify/link-google?token=${hashedToken}" 
+            <a href="${process.env.DOMAIN_NAME}/api/v1/verify/link-google?token=${hashedToken}" 
                style="background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
               Link Google Account
             </a>
