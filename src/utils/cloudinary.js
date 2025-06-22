@@ -37,17 +37,46 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteCloudinary = async (cloudinaryFilePath) => {
     try {
-        //Getting public Id
-        const publicId = String(cloudinaryFilePath.split("/").pop().split(".")[0]);
-        //Validating Public ID
-        if (!publicId) {
-            return console.log("No public Id present");
+        if (!cloudinaryFilePath) {
+            console.log("No cloudinary file path provided");
+            return null;
         }
+        
+        const urlParts = cloudinaryFilePath.split('/');
+        
+        // Find the index of the part that starts with 'v' (version)
+        const versionIndex = urlParts.findIndex(part => part.startsWith('v') && /^v\d+$/.test(part));
+        
+        if (versionIndex === -1) {
+            console.error("Could not find version in URL:", cloudinaryFilePath);
+            return null;
+        }
+        
+        // Get everything after the version (folder + filename)
+        const pathAfterVersion = urlParts.slice(versionIndex + 1);
+        
+        // Join the path and remove file extension
+        const publicId = pathAfterVersion.join('/').replace(/\.[^/.]+$/, "");
+        
+        console.log("Attempting to delete public ID:", publicId);
+        
         const result = await cloud.uploader.destroy(publicId);
-        console.log(result)
-
+        console.log("Cloudinary delete result:", result);
+        
+        if (result.result === 'ok') {
+            console.log("Successfully deleted from Cloudinary");
+        } else if (result.result === 'not found') {
+            console.log("File not found in Cloudinary (might already be deleted)");
+        } else {
+            console.log("Unexpected delete result:", result);
+        }
+        
+        return result;
+        
     } catch (error) {
-        console.log(error.message);
+        console.error("Error deleting from Cloudinary:", error);
+        // Don't throw error - just log it so the main operation can continue
+        return null;
     }
 }
 

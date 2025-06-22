@@ -3,7 +3,7 @@ import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/AsyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import mailSender from "../utils/mailSender.js";
 
 
@@ -455,4 +455,40 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong!! An email couldn't sent to your account");
 });
 
-export { registerUser, loginUser, logoutUser, getLeaderboardList, getUserDetails, forgotPassword }
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    console.log("Update account details called");
+    const { userName } = req.body;
+    const file = req.file;
+
+    if (file) {
+        await deleteCloudinary(req.user.profilePicture);
+        const profileImg = await uploadOnCloudinary(file.path);
+
+        if (!profileImg?.secure_url) {
+            throw new ApiError(400, "Error while uploading on profile");
+        }
+
+        const user = await User.findByIdAndUpdate(req.user?._id, {
+            $set: {
+                userName: userName || req.user.userName,
+                profilePicture: profileImg?.secure_url || ''
+            }
+        }, { new: true }).select("-password -refreshToken");
+
+        return res.status(200).json(
+            new ApiResponse(200, user, "Account details updated successfully")
+        );
+    }
+
+    const user = await User.findByIdAndUpdate(req.user?._id, {
+        $set: {
+            userName: userName || req.user.userName,
+        }
+    }, { new: true }).select("-password -refreshToken");
+
+    return res.status(200).json(
+        new ApiResponse(200, user, "Account details updated successfully")
+    );
+});
+
+export { registerUser, loginUser, logoutUser, getLeaderboardList, getUserDetails, forgotPassword, updateAccountDetails }
