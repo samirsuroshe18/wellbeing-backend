@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { forgotPassword, getLeaderboardList, getUserDetails, loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
+import { forgotPassword, getLeaderboardList, getUserDetails, loginUser, logoutUser, registerUser, updateAccountDetails } from "../controllers/user.controller.js";
 import verifyJwt from "../middleware/auth.middleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -13,6 +13,7 @@ router.route('/forgot').post(forgotPassword);
 router.route('/logout').get(verifyJwt, logoutUser);
 router.route('/get-leaderboardlist').get( getLeaderboardList);
 router.route('/get-userinfo').get(verifyJwt, getUserDetails);
+router.route('/update-account').post(verifyJwt, upload.single("profilePicture"), updateAccountDetails);
 
 
 export default router;
