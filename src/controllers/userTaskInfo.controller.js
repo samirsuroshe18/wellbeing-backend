@@ -49,9 +49,7 @@ const acceptTask = asyncHandler(async (req, res) => {
 
 const getTask = asyncHandler(async (req, res) => {
   
-  const userId = new mongoose.Types.ObjectId(req.user._id);
-
-  const assignedTaskIds = await UserTaskInfo.find({ assignTo: userId })
+  const assignedTaskIds = await UserTaskInfo.find({ assignTo: req.user._id })
     .then(tasksAssignedToUser => tasksAssignedToUser.map(task => task.taskInfo))
     .catch(err => {
       console.error(err);
@@ -173,7 +171,8 @@ const viewAcceptedTask = asyncHandler(async (req, res) => {
 })
 
 const getTaskCurrentState = asyncHandler(async (req, res) => {
-  const currentTask = await UserTaskInfo.findById(req.body._id);
+  const taskId = mongoose.Types.ObjectId.createFromHexString(req.body._id);
+  const currentTask = await UserTaskInfo.findById(taskId);
   const post = await Upload.findOne({"task" : currentTask.taskInfo});
   
   const timeDifference = new Date().getTime() - new Date(currentTask.createdAt).getTime();
@@ -198,7 +197,7 @@ const getTaskCurrentState = asyncHandler(async (req, res) => {
   const status = await UserTaskInfo.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(req.body._id) // assuming ObjectId is defined
+        _id: taskId // assuming ObjectId is defined
       }
     },
     // {
@@ -319,7 +318,5 @@ const getTaskCurrentState = asyncHandler(async (req, res) => {
     new ApiResponse(200, response, "Current task status fetched successfully")
   );
 });
-
-
 
 export { acceptTask, getTask, getTaskCurrentState, viewAcceptedTask };
