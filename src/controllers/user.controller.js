@@ -24,7 +24,6 @@ const generateAccessAndRefreshToken = async (userId) => {
     }
 }
 
-
 const registerUser = asyncHandler(async (req, res) => {
     const { userName, email, password } = req.body;
 
@@ -77,7 +76,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong!! An email couldn't sent to your account");
 });
 
-
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -86,6 +84,10 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
 
     // you cant access isPasswordCorrect method directly through 'User' beacause User is mogoose object 
     // these methods is applied only the instance of the user when mongoose return its instance
@@ -114,7 +116,6 @@ const loginUser = asyncHandler(async (req, res) => {
         new ApiResponse(200, { loggedInUser, accessToken, refreshToken }, "User logged in sucessully")
     )
 })
-
 
 const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } }, { new: true });
