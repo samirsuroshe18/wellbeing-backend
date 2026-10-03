@@ -3,6 +3,7 @@ import { Upload } from "../models/upload.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 import ApiResponse from "../utils/ApiResponse.js";
+import ApiError from "../utils/ApiError.js";
 
 
 const uploadPost = asyncHandler(async (req, res) => {
@@ -12,9 +13,13 @@ const uploadPost = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required !!");
   }
 
+  if (!mongoose.isValidObjectId(task)) {
+    throw new ApiError(400, "Task id is not valid !!");
+  }
+
   const taskId = new mongoose.Types.ObjectId(task);
   const uploadedBy = new mongoose.Types.ObjectId(req.user._id);
-  const multiMediaLocalPath = req.file.path;
+  const multiMediaLocalPath = req.file?.path;
 
   if(!multiMediaLocalPath){
     throw new ApiError(400, "File path is not found !!");
@@ -26,13 +31,14 @@ const uploadPost = asyncHandler(async (req, res) => {
     throw new ApiError(400, "There is some error uploading a file on cloudinary");
   }
 
-  const duration = Math.round(multiMedia.duration).toString();
+  // images have no duration
+  const duration = Math.round(multiMedia.duration || 0).toString();
 
   const post = await Upload.create({
     description,
     task: taskId,
     uploadedBy,
-    multiMedia: multiMedia.url,
+    multiMedia: multiMedia.secure_url,
     mediaType,
     duration
   });

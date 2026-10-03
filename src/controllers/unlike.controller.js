@@ -1,14 +1,16 @@
 import asyncHandler from "../utils/AsyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import ApiError from "../utils/ApiError.js";
 import mongoose from "mongoose";
 import { Dislike } from "../models/dislikes.model.js";
+import { Like } from "../models/likes.model.js";
 
 
 const sendDislike = asyncHandler(async (req, res) =>{
     const {multiMedia} = req.body;
 
-    if(!multiMedia){
-        throw new ApiError(500, "MultiMedia id is not found")
+    if(!multiMedia || !mongoose.isValidObjectId(multiMedia)){
+        throw new ApiError(400, "MultiMedia id is not found")
     }
     const dislikedBy = new mongoose.Types.ObjectId(req.user._id);
     const multiMediaId = new mongoose.Types.ObjectId(multiMedia);
@@ -17,38 +19,26 @@ const sendDislike = asyncHandler(async (req, res) =>{
     const existingDislike = await Dislike.findOne({ dislikedBy, multiMedia : multiMediaId });
 
     if (existingDislike) {
-        // If the like exists, remove it (unlike)
-        const totalDislike = await Dislike.countDocuments({ multiMedia });
+        // If the dislike exists, remove it
+        await Dislike.deleteMany({ dislikedBy, multiMedia : multiMediaId });
 
-    if(!totalDislike){
-        throw new ApiError(500, "Something went wrong!!");
-    }
+        const totalDislike = await Dislike.countDocuments({ multiMedia : multiMediaId });
 
-    if(!(totalDislike<10)){
         return res.status(200).json(
-            new ApiResponse(200, {totalDislike}, "Limit reached")
+            new ApiResponse(200, {totalDislike}, "Dislike removed")
         )
     }
 
-    return res.status(200).json(
-        new ApiResponse(200, {totalDislike}, "Already Disliked")
-    )
-    } else {
-        // If the like doesn't exist, add it (like)
-        const dislike = await Dislike.create({
-            dislikedBy,
-            multiMedia : multiMediaId
-        })
+    // If the dislike doesn't exist, add it
+    await Dislike.create({
+        dislikedBy,
+        multiMedia : multiMediaId
+    })
 
-        if(!dislike){
-            throw new ApiError(500, "Something went wrong!!");
-        }
+    // A post can't be liked and disliked by the same user
+    await Like.deleteMany({ likedBy : dislikedBy, multiMedia : multiMediaId });
 
-        const totalDislike = await Dislike.countDocuments({ multiMedia });
-
-    if(!totalDislike){
-        throw new ApiError(500, "Something went wrong!!");
-    }
+    const totalDislike = await Dislike.countDocuments({ multiMedia : multiMediaId });
 
     if(!(totalDislike<10)){
         return res.status(200).json(
@@ -59,7 +49,6 @@ const sendDislike = asyncHandler(async (req, res) =>{
     return res.status(200).json(
         new ApiResponse(200, {totalDislike}, "Disliked")
     )
-    }
 })
 
 

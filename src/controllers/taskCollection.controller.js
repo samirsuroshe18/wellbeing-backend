@@ -13,8 +13,14 @@ const createTask = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required !!");
     }
 
+    const existedTask = await TaskCollection.findOne({ title : title.trim() });
+
+    if(existedTask){
+        throw new ApiError(409, "Task with same title already exists");
+    }
+
     const createdBy = new mongoose.Types.ObjectId(req.user._id);
-    const taskReferenceLocalPath = req.file.path;
+    const taskReferenceLocalPath = req.file?.path;
     
     if(!taskReferenceLocalPath){
         throw new ApiError(400, "File path is not found !!");
@@ -32,7 +38,7 @@ const createTask = asyncHandler(async (req, res) => {
         mediaType,
         timeToComplete,
         createdBy,
-        taskReference : taskReference?.url
+        taskReference : taskReference?.secure_url
     });
 
     return res.status(200).json(

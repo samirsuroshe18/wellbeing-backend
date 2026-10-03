@@ -27,7 +27,7 @@ const generateAccessAndRefreshToken = async (userId) => {
 const registerUser = asyncHandler(async (req, res) => {
     const { userName, email, password } = req.body;
 
-    if (!userName?.trim() || !email?.trim() || !password?.trim()) {
+    if ([userName, email, password].some((field) => typeof field !== "string" || !field.trim())) {
         throw new ApiError(400, "All fields are required");
     }
 
@@ -55,7 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
         email,
         password,
         userName,
-        profilePicture: userProfileLocalPath?.secure_url || '',
+        profilePicture: profilePicture.secure_url || '',
         expireDocAfterSeconds: new Date()
     });
 
@@ -73,13 +73,17 @@ const registerUser = asyncHandler(async (req, res) => {
         );
     }
 
+    // without the verification mail the account can never be activated, so remove it and let the user register again
+    await User.findByIdAndDelete(createdUser._id);
+    await deleteCloudinary(profilePicture.secure_url);
+
     throw new ApiError(500, "Something went wrong!! An email couldn't sent to your account");
 });
 
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    if (!email && !password) {
+    if ([email, password].some((field) => typeof field !== "string" || !field.trim())) {
         throw new ApiError(400, "All fields are required");
     }
 
@@ -92,14 +96,14 @@ const loginUser = asyncHandler(async (req, res) => {
     // you cant access isPasswordCorrect method directly through 'User' beacause User is mogoose object 
     // these methods is applied only the instance of the user when mongoose return its instance
     // you can acces User.findOne() but you cant access User.isPasswordCorrect()
-    const isPasswordValid = await user.isPasswordCorrect(password);
+    const isPasswordValid = user.password ? await user.isPasswordCorrect(password) : false;
 
     if (!isPasswordValid) {
         throw new ApiError(401, "Invalid user credential");
     }
 
     if (!user?.isVerified) {
-        throw new ApiError(310, "Your email is not verified. An email sent to your account please verify in 10 minutes");
+        throw new ApiError(403, "Your email is not verified. Please use the verification link sent to your email");
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
@@ -439,6 +443,10 @@ const getUserDetails = asyncHandler(async (req, res) => {
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
+    if (typeof email !== "string" || !email.trim()) {
+        throw new ApiError(400, "Email is required");
+    }
+
     const user = await User.findOne({ email });
 
     if (!user || !user?.isVerified) {
@@ -462,12 +470,13 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     const file = req.file;
 
     if (file) {
-        await deleteCloudinary(req.user.profilePicture);
         const profileImg = await uploadOnCloudinary(file.path);
 
         if (!profileImg?.secure_url) {
             throw new ApiError(400, "Error while uploading on profile");
         }
+
+        await deleteCloudinary(req.user.profilePicture);
 
         const user = await User.findByIdAndUpdate(req.user?._id, {
             $set: {

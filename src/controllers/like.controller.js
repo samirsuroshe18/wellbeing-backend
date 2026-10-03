@@ -1,5 +1,6 @@
 import asyncHandler from "../utils/AsyncHandler.js";
 import { Like } from "../models/likes.model.js";
+import { Dislike } from "../models/dislikes.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError.js";
@@ -8,8 +9,8 @@ import ApiError from "../utils/ApiError.js";
 const sendLike = asyncHandler(async (req, res) =>{
     const {multiMedia} = req.body;
 
-    if(!multiMedia){
-        throw new ApiError(500, "MultiMedia id is not found")
+    if(!multiMedia || !mongoose.isValidObjectId(multiMedia)){
+        throw new ApiError(400, "MultiMedia id is not found")
     }
 
     const likedBy = new mongoose.Types.ObjectId(req.user._id);
@@ -20,37 +21,25 @@ const sendLike = asyncHandler(async (req, res) =>{
 
     if (existingLike) {
         // If the like exists, remove it (unlike)
-        const totalLikes = await Like.countDocuments({ multiMedia });
+        await Like.deleteMany({ likedBy, multiMedia : multiMediaId });
 
-    if(!totalLikes){
-        throw new ApiError(500, "Something went wrong!!");
-    }
+        const totalLikes = await Like.countDocuments({ multiMedia : multiMediaId });
 
-    if(!(totalLikes<10)){
         return res.status(200).json(
-            new ApiResponse(200, {totalLikes}, "Limit reached")
+            new ApiResponse(200, {totalLikes}, "Like removed")
         )
     }
 
-    return res.status(200).json(
-        new ApiResponse(200, {totalLikes}, "Already Liked")
-    )
-    } else {
-        // If the like doesn't exist, add it (like)
-        const like = await Like.create({
-            likedBy,
-            multiMedia : multiMediaId
-        })
+    // If the like doesn't exist, add it (like)
+    await Like.create({
+        likedBy,
+        multiMedia : multiMediaId
+    })
 
-        if(!like){
-            throw new ApiError(500, "Something went wrong!!");
-        }
+    // A post can't be liked and disliked by the same user
+    await Dislike.deleteMany({ dislikedBy : likedBy, multiMedia : multiMediaId });
 
-        const totalLikes = await Like.countDocuments({ multiMedia });
-
-    if(!totalLikes){
-        throw new ApiError(500, "Something went wrong!!");
-    }
+    const totalLikes = await Like.countDocuments({ multiMedia : multiMediaId });
 
     if(!(totalLikes<10)){
         return res.status(200).json(
@@ -61,9 +50,6 @@ const sendLike = asyncHandler(async (req, res) =>{
     return res.status(200).json(
         new ApiResponse(200, {totalLikes}, "liked")
     )
-    }
-
-    
 })
 
 

@@ -21,7 +21,7 @@ const uploadOnCloudinary = async (localFilePath) => {
             console.log("file is uploaded on cloudinary sdk : ", response.secure_url);
             fs.unlinkSync(localFilePath)//remove the locally saved temporary files as the upload operation got successfull
         }else{
-            throw new ApiError(400, "File path is not found !!");
+            return null;
         }
 
         return response;

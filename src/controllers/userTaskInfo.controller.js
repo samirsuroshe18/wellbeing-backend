@@ -4,6 +4,7 @@ import { TaskCollection } from "../models/taskCollection.model.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import mongoose from "mongoose";
 import { Upload } from "../models/upload.model.js";
+import ApiError from "../utils/ApiError.js";
 
 
 const acceptTask = asyncHandler(async (req, res) => {
@@ -12,7 +13,18 @@ const acceptTask = asyncHandler(async (req, res) => {
   if (!taskInfo?.trim() || !status?.trim()) {
     throw new ApiError(400, "Task Id or status is not found !!");
   }
+
+  if (!mongoose.isValidObjectId(taskInfo)) {
+    throw new ApiError(400, "Task Id is not valid !!");
+  }
+
   const assignTo = new mongoose.Types.ObjectId(req.user._id);
+
+  const task = await TaskCollection.findById(taskInfo);
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
 
   const userTaskInfo = await UserTaskInfo.create({
     taskInfo,
@@ -23,7 +35,6 @@ const acceptTask = asyncHandler(async (req, res) => {
   const currentTask = await UserTaskInfo.findById(userTaskInfo._id);
   const timeDifference = new Date().getTime() - Date.parse(userTaskInfo.createdAt);
 
-  const task = await TaskCollection.findById(currentTask.taskInfo);
   const timeToComplete = task.timeToComplete;
 
   const millis = (timeToComplete * 24 * 60 * 60 * 1000) - timeDifference;
@@ -119,6 +130,11 @@ const getTask = asyncHandler(async (req, res) => {
 
 const viewAcceptedTask = asyncHandler(async (req, res) => {
   const {id} = req.body;
+
+  if (!mongoose.isValidObjectId(id)) {
+    throw new ApiError(400, "Task Id is not valid !!");
+  }
+
   const assignedTaskIds = mongoose.Types.ObjectId.createFromHexString(id);
 
   const randomTask = await TaskCollection.aggregate([
@@ -171,13 +187,28 @@ const viewAcceptedTask = asyncHandler(async (req, res) => {
 })
 
 const getTaskCurrentState = asyncHandler(async (req, res) => {
-  const taskId = mongoose.Types.ObjectId.createFromHexString(req.body._id);
+  if (!mongoose.isValidObjectId(req.body._id)) {
+    throw new ApiError(400, "Task Id is not valid !!");
+  }
+
+  const taskId = new mongoose.Types.ObjectId(req.body._id);
   const currentTask = await UserTaskInfo.findById(taskId);
-  const post = await Upload.findOne({"task" : currentTask.taskInfo});
-  
+
+  if (!currentTask) {
+    throw new ApiError(404, "Accepted task not found");
+  }
+
+  // only the proof uploaded by the user who accepted the task completes it
+  const post = await Upload.findOne({"task" : currentTask.taskInfo, "uploadedBy" : currentTask.assignTo});
+
   const timeDifference = new Date().getTime() - new Date(currentTask.createdAt).getTime();
 
   const task = await TaskCollection.findById(currentTask.taskInfo);
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
   const timeToComplete = task.timeToComplete;
   const dayTimeLimit = new Date(new Date().getTime() - timeToComplete * 24 * 60 * 60 * 1000);
 
