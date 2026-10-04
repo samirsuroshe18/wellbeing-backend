@@ -8,9 +8,9 @@ import ApiError from "../utils/ApiError.js";
 
 
 const acceptTask = asyncHandler(async (req, res) => {
-  const { taskInfo, status } = req.body;
+  const { taskInfo } = req.body;
 
-  if (!taskInfo?.trim() || !status?.trim()) {
+  if (typeof taskInfo !== "string" || !taskInfo.trim()) {
     throw new ApiError(400, "Task Id or status is not found !!");
   }
 
@@ -26,10 +26,14 @@ const acceptTask = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Task not found");
   }
 
-  const userTaskInfo = await UserTaskInfo.create({
+  // a repeated request (double tap, retry after a slow answer) must not accept the task twice
+  const alreadyAccepted = await UserTaskInfo.findOne({ taskInfo, assignTo });
+
+  // a task always starts as pending; its status only changes from the server side
+  const userTaskInfo = alreadyAccepted || await UserTaskInfo.create({
     taskInfo,
     assignTo,
-    status
+    status: "pending"
   })
 
   const currentTask = await UserTaskInfo.findById(userTaskInfo._id);
@@ -265,7 +269,9 @@ const getTaskCurrentState = asyncHandler(async (req, res) => {
                 },
                 then: "incompleted"
               }
-            ]
+            ],
+            // exactly on the limit: the time is up
+            default: "incompleted"
           }
         }
       }

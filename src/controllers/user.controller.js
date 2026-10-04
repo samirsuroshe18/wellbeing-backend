@@ -465,9 +465,18 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    console.log("Update account details called");
-    const { userName } = req.body;
     const file = req.file;
+    // a name of only spaces is no name: the current one is kept
+    const userName = typeof req.body.userName === "string" && req.body.userName.trim()
+        ? req.body.userName.trim()
+        : req.user.userName;
+
+    // user names are unique at sign up, so they stay unique here
+    const nameTaken = await User.findOne({ userName, _id: { $ne: req.user._id } });
+
+    if (nameTaken) {
+        throw new ApiError(409, "User with same username already exists");
+    }
 
     if (file) {
         const profileImg = await uploadOnCloudinary(file.path);
@@ -480,7 +489,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
         const user = await User.findByIdAndUpdate(req.user?._id, {
             $set: {
-                userName: userName || req.user.userName,
+                userName,
                 profilePicture: profileImg?.secure_url || ''
             }
         }, { new: true }).select("-password -refreshToken");
@@ -492,7 +501,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
     const user = await User.findByIdAndUpdate(req.user?._id, {
         $set: {
-            userName: userName || req.user.userName,
+            userName,
         }
     }, { new: true }).select("-password -refreshToken");
 
