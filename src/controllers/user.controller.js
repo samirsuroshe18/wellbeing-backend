@@ -7,6 +7,9 @@ import { deleteCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import mailSender from "../utils/mailSender.js";
 
 
+// "Sam" and "sam" are the same name: user names are compared without regard to capitals
+const IGNORE_CASE = { locale: "en", strength: 2 };
+
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -32,8 +35,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const existedUser = await User.findOne({
-        $or: [{ userName }, { email }]
-    });
+        $or: [{ userName: userName.trim() }, { email }]
+    }).collation(IGNORE_CASE);
 
     if (existedUser) {
         throw new ApiError(409, 'User with same email or username already exists');
@@ -472,7 +475,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         : req.user.userName;
 
     // user names are unique at sign up, so they stay unique here
-    const nameTaken = await User.findOne({ userName, _id: { $ne: req.user._id } });
+    const nameTaken = await User.findOne({ userName, _id: { $ne: req.user._id } }).collation(IGNORE_CASE);
 
     if (nameTaken) {
         throw new ApiError(409, "User with same username already exists");
