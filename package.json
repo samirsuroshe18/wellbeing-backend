@@ -1,7 +1,7 @@
 {
   "name": "wellbeing_backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Server of the Wellbeing Android app: accounts, tasks, posts, likes, comments and wellpoints",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.0.1",
