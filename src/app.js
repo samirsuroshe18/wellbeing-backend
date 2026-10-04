@@ -45,7 +45,8 @@ app.use("/api/v1/dislike", dislikeRouter);
 app.use("/api/v1/usertaskinfo", userTaskInfoRouter);
 
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || (err.name === "MulterError" ? 400 : 500);
+  const isBadInput = ["MulterError", "ValidationError", "CastError"].includes(err.name);
+  const statusCode = err.statusCode || (isBadInput ? 400 : 500);
   const message = err.message || "Internal server error";
 
   // remove the temporary upload if the request failed before it reached cloudinary

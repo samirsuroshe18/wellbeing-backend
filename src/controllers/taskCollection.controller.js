@@ -9,8 +9,14 @@ import fs from "fs";
 const createTask = asyncHandler(async (req, res) => {
     const {title, description, timeToComplete, mediaType} = req.body;
 
-    if(!title?.trim() || !description?.trim() || !timeToComplete?.trim()){
+    if([title, description, timeToComplete].some((field) => typeof field !== "string" || !field.trim())){
         throw new ApiError(400, "All fields are required !!");
+    }
+
+    const days = Number(timeToComplete);
+
+    if(!Number.isFinite(days) || days < 1){
+        throw new ApiError(400, "Time to complete must be at least 1 day");
     }
 
     const existedTask = await TaskCollection.findOne({ title : title.trim() });
@@ -36,7 +42,7 @@ const createTask = asyncHandler(async (req, res) => {
         title,
         description,
         mediaType,
-        timeToComplete,
+        timeToComplete : days,
         createdBy,
         taskReference : taskReference?.secure_url
     });

@@ -6,15 +6,20 @@ import ApiError from "../utils/ApiError.js";
 
 const postComment = asyncHandler(async (req, res) => {
     const { content, multiMedia } = req.body;
-    const commentedBy = new mongoose.Types.ObjectId(req.user._id);
-    const multiMediaId = new mongoose.Types.ObjectId(multiMedia);
 
-    if(!multiMediaId){
+    if(!multiMedia || !mongoose.isValidObjectId(multiMedia)){
         throw new ApiError(400, "Multimedia id is not found");
     }
 
+    if(typeof content !== "string" || !content.trim()){
+        throw new ApiError(400, "Comment can't be empty");
+    }
+
+    const commentedBy = new mongoose.Types.ObjectId(req.user._id);
+    const multiMediaId = new mongoose.Types.ObjectId(multiMedia);
+
     const comment = await Comment.create({
-        content,
+        content : content.trim(),
         commentedBy,
         multiMedia : multiMediaId
     })
@@ -72,7 +77,7 @@ const getComments = asyncHandler(async (req, res) => {
 
     const {multiMedia} = req.body;
 
-    if(!multiMedia){
+    if(!multiMedia || !mongoose.isValidObjectId(multiMedia)){
         throw new ApiError(400, "Multimedia Id is not found !!");
     }
 
